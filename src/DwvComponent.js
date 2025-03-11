@@ -20,6 +20,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import StraightenIcon from '@mui/icons-material/Straighten';
 import CameraswitchIcon from '@mui/icons-material/Cameraswitch';
+import Image from '@mui/icons-material/Image';
 
 import Dialog from '@mui/material/Dialog';
 import AppBar from '@mui/material/AppBar';
@@ -34,6 +35,8 @@ import {
   getDwvVersion,
   decoderScripts
 } from 'dwv';
+
+import tiffApp from './tiff/app';
 
 // Image decoders (for web workers)
 decoderScripts.jpeg2000 = `${process.env.PUBLIC_URL}/assets/dwv/decoders/pdfjs/decode-jpeg2000.js`;
@@ -78,6 +81,7 @@ class DwvComponent extends React.Component {
       loadProgress: 0,
       dataLoaded: false,
       dwvApp: null,
+      tiffApp: null,
       metaData: {},
       orientation: undefined,
       showDicomTags: false,
@@ -140,6 +144,14 @@ class DwvComponent extends React.Component {
             disabled={!dataLoaded}
             onClick={this.handleTagsDialogOpen}
           ><LibraryBooksIcon /></ToggleButton>
+
+          <ToggleButton size="small"
+            value="tags"
+            title="Tags"
+            // disabled={!dataLoaded}
+            onClick={this.handleTiffUpload}
+          ><Image /></ToggleButton>
+
 
           <Dialog
             open={this.state.showDicomTags}
@@ -259,6 +271,9 @@ class DwvComponent extends React.Component {
 
     // store
     this.setState({dwvApp: app});
+
+    //tiffApp
+    this.setState({tiffApp: new tiffApp()});
 
     // setup drop box
     this.setupDropbox(app);
@@ -440,13 +455,25 @@ class DwvComponent extends React.Component {
     this.state.dwvApp.loadFiles(event.dataTransfer.files);
   }
 
+  // TIFF upload
+  handleTiffUpload = (event) => {
+    console.log('onTIFFUpload');
+    console.log(event.target.files);
+  }
+
   /**
    * Handle a an input[type:file] change event.
    * @param event The event to handle.
    */
   onInputFile = (event) => {
     if (event.target && event.target.files) {
-      this.state.dwvApp.loadFiles(event.target.files);
+      const file_suffix  = event.target.files[0].name.toLowerCase().split('.').pop();
+      console.log('loading files with suffix', file_suffix)
+      if (file_suffix === 'tiff' || file_suffix === 'tif') {
+        this.state.tiffApp.loadFiles(event.target.files);
+      } else {
+        this.state.dwvApp.loadFiles(event.target.files);
+      }
     }
   }
 
